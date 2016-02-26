@@ -17,14 +17,20 @@ geometry: margin=3cm
 <br/>
 >**Responsável:** João Gabriel Lima
 <br/>
+>**Bolsistas:** Ingrid Nascimento, Paulo Viegas
+<br/>
 >**Financiador:** PROGRAMA DE AUXÍLIO À PESQUISA PROJETOS TEMÁTICOS DA FAPESPA: VIOLÊNCIA E SEGURANÇA PÚBLICA
 
 
 <br/>
 
-##Resumo
+##Sobre o Projeto
+
 Este projeto propõe o desenvolvimento e aplicação de técnicas de inteligência computacional e visualização sobre bases de dados de segurança pública, estas propiciarão ao gestor (i.e. Delegado Geral, Secretário de Segurança) um hipercubo para
 análise pelos diferentes fatos e dimensões do domínio em segurança pública, em particular, mas não limitado, no que concerne aos níveis de criminalidade segundo sua tipologia e motivo determinante.
+
+##Resumo do Relatório
+Este relatório visa apresentar as análises iniciais realizadas sobre a base de segurança pública repassada pela Polícia Civíl do Estado do Pará
 
 <!---Bibliotecas Utilizadas-->
 ```{r warning=FALSE, message=FALSE, echo=FALSE} 
@@ -70,13 +76,10 @@ dados[boo2,]$Bairros <- as.factor("CENTRO")
 dados[boo3,]$Bairros <- as.factor("CENTRO")
 dados[boo4,]$Bairros <- as.factor("CENTRO")
 
-
 dados$Registros <- as.character(dados$Registros)
 dados[dados$Registros=="Latrocínio",]$Registros <- "Latrocinio"
 dados[dados$Registros=="Homicídio",]$Registros = "Homicidio"
 dados$Registros <- as.factor(dados$Registros)
-
-      
 
 ```
 
@@ -136,9 +139,9 @@ ggplot(latrocinio, aes(nome,total , fill=Registros) ) +
 
 ##Análise de Ocorrências
 
-###**Total de ocorrências**
+###**Total de ocorrências reportadas**
 
-```{r fig.width=10, warning=FALSE, message=FALSE}
+```{r fig.width=10, warning=FALSE, message=FALSE,echo=FALSE}
  
 
  
@@ -159,7 +162,7 @@ media <- mean(ocorrencias_DIA$count)
 media
 
 
-ggplot(ocorrencias_DIA, aes(DATA.FATO, count)) + geom_line()+  geom_smooth()  + geom_hline(aes(yintercept=media,colour="red")  )
+ggplot(ocorrencias_DIA, aes(DATA.FATO, count)) + geom_line()+  geom_smooth()  + geom_hline(aes(yintercept=media)  )
 
 ```
 
@@ -176,13 +179,13 @@ dygraph(ocd, main = "Ocorrências por dia", ylab = "Total de Ocorrências")  %>%
 
 ```
 
-###**Dias com Mais ocorências no ano (Dobro da média)**
+###**Dias com mais ocorências no ano (Dobro da média)**
 
 ```{r fig.width=10, warning=FALSE, message=FALSE,echo=FALSE}
 #Dias com Mais ocorências no ano ( dobro da média )
 dobroMedia <- 2 * media
 maiorMedia <- filter( ocorrencias_DIA, count > dobroMedia)
-dim(maiorMedia)
+#dim(maiorMedia)
 
 ggplot(maiorMedia, aes(DATA.FATO, count)) + geom_line()+  geom_smooth(method="lm")  
 
@@ -195,28 +198,37 @@ ggplot(menorMedia, aes(DATA.FATO, count)) + geom_line()+  geom_smooth(method="lm
 
 ```
 
-## Horários Perigosos
-```{r fig.width=10, warning=FALSE, message=FALSE}
+###**Análise dos horários mais perigosos perigosos**
 
-  
+```{r fig.width=10, warning=FALSE, message=FALSE,echo=FALSE}
 ggplot( dados,aes(FX.12.HOR,fill=is.weekend(DATA_HORA_FATO)) )+
         geom_bar()+
         xlab("Horários")+ 
         theme(axis.text.x = element_text(angle = 90, hjust = 1))
-
-
 ```
 
  
-## Meses mais perigosos
-```{r fig.width=10, warning=FALSE, message=FALSE}
+### **Análise dos meses mais perigosos**
+
+```{r fig.width=10, warning=FALSE, message=FALSE, echo=FALSE}
 
 dadosMes <- dados
 dadosMes$mes <-month(dadosMes$DATA.FATO)
 resumoMes <- dadosMes %>% group_by(mes) %>%summarise(total=n())  
 
+resumoMes
+```
+
+#### **Total de ocorrências no primeiro semestre**
+```{r fig.width=10, warning=FALSE, message=FALSE, echo=FALSE}
+
 #Primeiro Semestre
 sum( resumoMes[1:6,]$total)
+
+```
+
+#### **Total de ocorrências no segundo semestre**
+```{r fig.width=10, warning=FALSE, message=FALSE, echo=FALSE}
 
 #Segundo Semestre
 sum( resumoMes[7:12,]$total)
@@ -227,31 +239,28 @@ ggplot( resumoMes,aes(x=mes,total) )+
 
 ```
 
- 
- 
-## Calendário Heat Map
-```{r fig.width=10, warning=FALSE, message=FALSE}
+###**Mapas de Calor**
 
+####**Distribuição das ocorrências por dias**
+```{r fig.width=10, warning=FALSE, message=FALSE,echo=FALSE}
 source("/home/stark/MEGAsync/SEGUP/calendarHeat.R")
-calendarHeat(ocorrencias_DIA$DATA.FATO, ocorrencias_DIA$count, varname="Calendar Heat Map of Violence in Pará",color = "g2r")
-
-
-
-calendarHeat(maiorMedia$DATA.FATO, maiorMedia$count, varname="Calendar Heat Map of Most Violent days in Pará",color = "g2r")
-
-
-
-calendarHeat(menorMedia$DATA.FATO, menorMedia$count, varname="Calendar Heat Map of least Violent days in Pará",color = "g2r")
-
-
-
-
+calendarHeat(ocorrencias_DIA$DATA.FATO, ocorrencias_DIA$count, varname="Ocorrências por dias",color = "g2r")
 ```
 
+####**Maior médiar de ocorrências por dias**
 
+```{r fig.width=10, warning=FALSE, message=FALSE,echo=FALSE}
+calendarHeat(maiorMedia$DATA.FATO, maiorMedia$count, varname="Maior média por dia",color = "g2r")
+```
 
-##Regras
-```{r  fig.width=10, warning=FALSE, message=FALSE}
+####**Menor média de ocorrências por dias**
+
+```{r fig.width=10, warning=FALSE, message=FALSE,echo=FALSE}
+calendarHeat(menorMedia$DATA.FATO, menorMedia$count, varname="Menor média por dia",color = "g2r")
+```
+
+##**Regra do cluster de ocorrências**
+```{r  fig.width=10, warning=FALSE, message=FALSE,echo=FALSE}
 
 transacoes <- dados
 transacoes$AISP <- NULL
@@ -273,27 +282,20 @@ transacoes$DIF_FATO_REGISTO<-NULL
 tr <- as(transacoes,"transactions")
 #support(tr,)
 
-summary(tr)
+#summary(tr)
 
 itemFrequencyPlot(tr, support = 0.5, cex.names=0.5)
  
-rules <- apriori(tr, parameter= list(supp=0.1, conf=0.5))
+#rules <- apriori(tr, parameter= list(supp=0.1, conf=0.5))
 
- 
-tab <-as(rules, "data.frame")
-DT::datatable(tab)
-
-
-
+#tab <-as(rules, "data.frame")
+#DT::datatable(tab)
 
 ```
-  
-
- 
-
 
 
 #Belém
+
 ```{r  eval= FALSE}
 belem <- dados$DISTRITO == "Belém"                
 dadosBelem <- dados[belem,]
